@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+		<link href="css.css" rel="stylesheet">
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+		<title>Process states</title>
+	</head>
+	<body>
+		<div class="container">
+			<div class="row processes">
+				<div id="new" class="span3 process-column" >
+					<h3>New</h3>
+					<div class="list">
+						<div class="process">
+							<p>PID: <span></span></p>
+							<p></p>
+							<p>Cycles: <span>0/20</span></p>
+							<p class="io">IO: <span>b</span></p>
+							<button class="btn btn-danger terminate" href="#">Terminate</button>
+						</div>
+					</div>
+				</div>
+				<div id="ready" class="span3 process-column">
+					<h3>Ready</h3>
+					<div class="list">
+						<div class="process">
+							<p>PID: <span></span></p>
+							<p></p>
+							<p>Cycles: <span>0/20</span></p>
+							<p class="io">IO: <span>b</span></p>
+							<button class="btn btn-danger terminate" href="#">Terminate</button>
+						</div>
+					</div>
+				</div>
+				<div id="running" class="span3 process-column">
+					<h3>Running</h3>
+					<div class="list">
+						<div class="process">
+							<p>PID: <span></span></p>
+							<p></p>
+							<p>Cycles: <span>0/20</span></p>
+							<p class="io">IO: <span>b</span></p>
+							<button class="btn btn-danger terminate" href="#">Terminate</button>
+						</div>
+					</div>
+				</div>
+				<div id="waiting" class="span3 process-column">
+					<h3>Waiting</h3>
+					<div class="list">
+						<div class="process">
+							<p>PID: <span></span></p>
+							<p></p>
+							<p>Cycles: <span>0/20</span></p>
+							<p class="io">IO: <span>b</span></p>
+							<button class="btn btn-danger terminate" href="#">Terminate</button>
+						</div>
+					</div>
+				</div>
+				<div id="terminated" class="span3 process-column">
+					<h3>Terminated</h3>
+					<div class="list">
+						<div class="process">
+							<p>PID: <span></span></p>
+							<p></p>
+							<p>Cycles: <span>0/20</span></p>
+							<p class="io">IO: <span>b</span></p>
+							<button class="btn btn-danger terminate" href="#">Terminate</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="row new_process">
+				<form class="well">
+					<label>Cycles</label>
+					<input type="text" class="span2" name="cycles" placeholder="How many cycles process will execute before being terminated, 0 for infinity"/>
+					<div class="control-group">
+						<label class="control-label">IO Wait</label>
+						<label class="radio">
+							<input type="radio" value="1" name="io_wait" checked/>
+							Will eventualy wait for user input
+						</label>
+						<label class="radio">
+							<input type="radio" value="0" name="io_wait"/>
+							No user input
+						</label>
+					</div>
+					<button class="btn btn-primary" id="create_process" href="#">Create</button>
+				</form>
+			</div>
+		</div>
+
+		<div class="process template">
+			<p>PID: <span></span></p>
+			<p></p>
+			<p>Cycles: <span>0/20</span></p>
+			<p class="io">IO: <span>b</span></p>
+			<button class="btn btn-danger" href="#">Terminate</button>
+		</div>
+	</body>
+</html>

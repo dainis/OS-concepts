@@ -1,0 +1,56 @@
+html {
+	height: 100%;
+}
+
+body {
+	height: 100%;
+	background-color: #229BF2;
+}
+
+.processes {
+	position: absolute;
+	bottom: 20%;
+	top: 0;
+}
+
+.process-column {
+	overflow-y: scroll;
+	height: 100%;
+}
+
+.new_process {
+	position: absolute;
+	top: 80%;
+	margin: 0 auto;
+	width: 20%;
+	margin-top: 10px;
+	left: 40%;
+}
+
+.process {
+	border-radius: 10px;
+	margin-right: 5px;
+	background-color: #8DCBF7;
+	padding: 3px;
+}
+
+.template {
+	display: none;
+}
+
+.process .io {
+	display: none;
+}
+
+.process .terminate {
+	display: none;
+}
+
+#waiting .process .io {
+	display: block;
+	font-weight: bold;
+}
+
+#running .process .terminate {
+	display: block;
+}
