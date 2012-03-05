@@ -7,10 +7,12 @@ body {
 	background-color: #229BF2;
 }
 
-.processes {
-	position: absolute;
-	bottom: 20%;
+.container {
 	top: 0;
+	left: 6%;
+	bottom: 100%;
+	position: absolute;
+	height: 100%;
 }
 
 .process-column {
@@ -18,13 +20,8 @@ body {
 	height: 100%;
 }
 
-.new_process {
-	position: absolute;
-	top: 80%;
-	margin: 0 auto;
-	width: 20%;
-	margin-top: 10px;
-	left: 40%;
+.processes {
+	height: 95%;
 }
 
 .process {
@@ -53,4 +50,9 @@ body {
 
 #running .process .terminate {
 	display: block;
+}
+
+.custom_modal {
+	width: 200px;
+	margin-left: -100px;	
 }

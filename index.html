@@ -5,10 +5,13 @@
 		<link href="bootstrap/css/bootstrap.css" rel="stylesheet">
 		<link href="css.css" rel="stylesheet">
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+		<script src="bootstrap/js/bootstrap.min.js"></script>
+		<script src="js.js"></script>
 		<title>Process states</title>
 	</head>
 	<body>
 		<div class="container">
+			<a class="btn" id="new_process" href="#">New Process</a>
 			<div class="row processes">
 				<div id="new" class="span3 process-column" >
 					<h3>New</h3>
@@ -71,25 +74,6 @@
 					</div>
 				</div>
 			</div>
-
-			<div class="row new_process">
-				<form class="well">
-					<label>Cycles</label>
-					<input type="text" class="span2" name="cycles" placeholder="How many cycles process will execute before being terminated, 0 for infinity"/>
-					<div class="control-group">
-						<label class="control-label">IO Wait</label>
-						<label class="radio">
-							<input type="radio" value="1" name="io_wait" checked/>
-							Will eventualy wait for user input
-						</label>
-						<label class="radio">
-							<input type="radio" value="0" name="io_wait"/>
-							No user input
-						</label>
-					</div>
-					<button class="btn btn-primary" id="create_process" href="#">Create</button>
-				</form>
-			</div>
 		</div>
 
 		<div class="process template">
@@ -98,6 +82,49 @@
 			<p>Cycles: <span>0/20</span></p>
 			<p class="io">IO: <span>b</span></p>
 			<button class="btn btn-danger" href="#">Terminate</button>
+		</div>
+
+		<div class="modal custom_modal" id="settings_modal">
+		  <div class="modal-header">
+		    <h3>Settings</h3>
+		  </div>
+		  <div class="modal-body">
+		    <form>
+		    	<label>Paralel processes</label>
+		    	<input type="text" class="span2" name="process_count" placeholder="Input not zero value"/>
+				<label>Cycle length</label>
+				<input type="text" class="span2" name="cycle_length" placeholder="Cycle length in seconds"/>
+			</form>
+		  </div>
+		  <div class="modal-footer">
+		    <a href="#" id="settings_ok_button" class="btn btn-primary">OK</a>
+		  </div>
+		</div>
+
+		<div class="modal custom_modal" id="new_process_modal">
+		  <div class="modal-header">
+		    <h3>Settings</h3>
+		  </div>
+		  <div class="modal-body">
+		    <form>
+				<label>Cycles</label>
+				<input type="text" class="span2" name="cycles" placeholder="How many cycles process will execute before being terminated, 0 for infinity"/>
+				<div class="control-group">
+					<label class="control-label">IO Wait</label>
+					<label class="radio">
+						<input type="radio" value="1" name="io_wait" checked/>
+						Will eventualy wait for user input
+					</label>
+					<label class="radio">
+						<input type="radio" value="0" name="io_wait"/>
+						No user input
+					</label>
+				</div>
+			</form>
+		  </div>
+		  <div class="modal-footer">
+		    <button class="btn btn-primary" id="create_process" href="#">Create</button>
+		  </div>
 		</div>
 	</body>
 </html>
