@@ -90,10 +90,20 @@
 		  </div>
 		  <div class="modal-body">
 		    <form>
-		    	<label>Paralel processes</label>
-		    	<input type="text" class="span2" name="process_count" placeholder="Input not zero value"/>
-				<label>Cycle length</label>
-				<input type="text" class="span2" name="cycle_length" placeholder="Cycle length in seconds"/>
+		    	<div class="control-group">
+		            <label class="control-label">Paralel processes</label>
+		            <div class="controls">
+		              <input type="text" class="span2" name="paralel_processes" placeholder="Int"/>
+		              <span class="help-block" style="display:none">Incorect paralel process count</span>
+		            </div>
+		        </div>
+		        <div class="control-group">
+		            <label class="control-label">Cycle length</label>
+		            <div class="controls">
+		              <input type="text" class="span2" name="cycle_length" placeholder="Seconds"/>
+		              <span class="help-block" style="display:none">Incorect cycle length</span>
+		            </div>
+		        </div>
 			</form>
 		  </div>
 		  <div class="modal-footer">
