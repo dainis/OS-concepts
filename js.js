@@ -83,8 +83,9 @@ $(document).ready(function(){
 	});
 
 	$('#running').on('click', '.terminate', function() {
-		var process = $(this).closest('.process');
-		animate_move(process, $('#terminated'));
+		task_queue.terminate($(this).closest('.process').data('pid'));
+
+		return false;
 	});
 
 	$('body').on('keypress', function(e) {
@@ -162,8 +163,13 @@ var Process = function(cycles, interupt) {
 	this.set_pid = function(pid_in) {
 		pid = pid_in;
 		dom = $('.process.template').clone().removeClass('template');
-		$('#new .list').append(dom).fadeIn(1000);	
+		dom.data('pid', pid_in);
+		$('#new .list').append(dom).fadeIn(1000);
 		$('.pid > span', dom).text(pid);
+	}
+
+	this.get_pid = function() {
+		return pid;
 	}
 
 	//Renders process content, if new, then renders it in corresponding que
@@ -173,7 +179,7 @@ var Process = function(cycles, interupt) {
 	}
 
 	this.run = function() {
-		if(cycles_left > 0) {
+		if(cycles_left > 0 && (status == Process.STATUS_READY || status == Process.STATUS_RUNNING)) {
 			cycles_left -= 1;
 			status = Process.STATUS_RUNNING;
 			return true;
@@ -215,7 +221,6 @@ var task_queue = (function(){
 
 		if(p.get_dom().hasClass('animating')) {
 			setTimeout(function() {move_to_list(p, list)}, 30);
-			return;
 		}
 		else {
 			p.render();
@@ -264,7 +269,7 @@ var task_queue = (function(){
 					if(!r) {
 						lists.terminated.push(process);
 						move_to_list(process, $('#terminated'));
-						//animate_move(process.get_dom(), $('#terminated'));
+						currently_running -= 1;
 					}
 					else {
 						processed.push(process);
@@ -273,8 +278,6 @@ var task_queue = (function(){
 
 				lists.running = processed;
 				
-				console.log(new Date().valueOf() / 1000)
-
 				setTimeout(timeouted, that.cycle_length * 1000);
 			}
 
@@ -288,8 +291,29 @@ var task_queue = (function(){
 			processes.push(process);
 			lists.new.push(process);
 			process.render();
-		}
+		},
+		terminate: function(pid) {
 
+			var l = lists.running.length;
+			var running = lists.running;
+			var process = null;
+
+			for(var i=0; i<l;i++) {
+				if(running[i].get_pid() == pid) {
+					process = running[i];
+					break;
+				}
+			}
+
+			currently_running -= 1;
+
+			lists.running.splice(i, 1);
+
+			process.set_status(Process.STATUS_TERMINATED);
+			
+			move_to_list(process, $('#terminated'));
+			lists.terminated.push(process);
+		}
 	}
 
 	task_queue.lists = [];
