@@ -1,5 +1,7 @@
 $(document).ready(function(){
 
+	var modal_open = true;
+
 	var settings_modal = $('#settings_modal').modal({backdrop: 'static', keyboard: false, show: true});
 
 	//Error handling
@@ -27,10 +29,12 @@ $(document).ready(function(){
 		if(!errors) {
 
 			task_queue.cycle_length = cycle_length;
-			task_queue.paralel_processes = paralel_processes;			
+			task_queue.paralel_processes = paralel_processes;
+			console.log(task_queue.paralel_processes);
 			task_queue.start();
 
 			$(settings_modal).modal('hide');	
+			modal_open = false;
 		}
 		
 		return false;
@@ -39,6 +43,8 @@ $(document).ready(function(){
 	var new_process_modal = $('#new_process_modal').modal({backdrop: 'static', keyboard: false}).modal('hide');
 
 	$('#new_process').on('click', function(){
+
+		modal_open = true;
 
 		$('input', new_process_modal).val('');
 		$('.error', new_process_modal).removeClass('error');
@@ -64,6 +70,7 @@ $(document).ready(function(){
 			var io_wait = parseInt($('input[name="io_wait"]', new_process_modal).val());
 			var process = new Process(process_cycles, io_wait);
 			task_queue.add_process(process);
+			modal_open = false;
 		}
 
 		return false;
@@ -78,11 +85,25 @@ $(document).ready(function(){
 	$('#running').on('click', '.terminate', function() {
 		var process = $(this).closest('.process');
 		animate_move(process, $('#terminated'));
+	});
+
+	$('body').on('keypress', function(e) {
+		if(!modal_open) {
+			
+			task_queue.notify(e.which);
+
+			return false;
+		}
+		
+		return true;		
 	})
 });
 
 var animate_move = function(el, to_container) {
+
 	el = $(el);
+
+	el.addClass('animating');
 
 	var initial_offset = el.offset();
 	var animated_el = el.clone();
@@ -95,11 +116,6 @@ var animate_move = function(el, to_container) {
 	var target_coords = el.offset();
 
 	el.hide();
-
-	console.log(el);
-	console.log(animated_el);
-	console.log(target_coords);
-	console.log(initial_offset);
 
 	animated_el.css({
 		position: 'absolute', 
@@ -123,6 +139,7 @@ var animate_move = function(el, to_container) {
     		},
     		complete: function() {
     			el.show();
+    			el.removeClass('animating');
       			$(this).remove();
     		}
     	});
@@ -135,33 +152,42 @@ var Process = function(cycles, interupt) {
 	var pid = null;
 
 	var status = Process.STATUS_NEW;
-
+	var old_status = null;
 	var dom = undefined;
 
 	var task_queue = undefined;
-	/**
-	 * 
-	 */
-	this.set_pid = function(pid_in, task_queue_in) {
+
+	var io = null;
+
+	this.set_pid = function(pid_in) {
 		pid = pid_in;
-		task_queue = task_queue_in;
+		dom = $('.process.template').clone().removeClass('template');
+		$('#new .list').append(dom).fadeIn(1000);	
+		$('.pid > span', dom).text(pid);
 	}
 
 	//Renders process content, if new, then renders it in corresponding que
 	this.render = function() {
-
-		if(!dom) {
-			dom = $('.process.template').clone().removeClass('template');
-			$(task_queue.lists[status] + ' .list').append(dom).fadeIn(1000);	
-			$('.pid > span', dom).text(pid);
-		}
-
+		$('.io > span', dom).text(io)
 		$('.cycles > span', dom).text(cycles - cycles_left+'/'+cycles);
 	}
 
 	this.run = function() {
-		cycles_left -= 1;
+		if(cycles_left > 0) {
+			cycles_left -= 1;
+			status = Process.STATUS_RUNNING;
+			return true;
+		}
 
+		return false;
+	}
+
+	this.get_dom = function() {
+		return dom;
+	}
+
+	this.set_status = function(status_in) {
+		status = status_in;
 	}
 }
 
@@ -177,6 +203,28 @@ var task_queue = (function(){
 
 	var processes = [];
 
+	var lists = {
+		new: [],
+		ready: [],
+		running: [],
+		waiting: [],
+		terminated: []
+	};
+
+	var move_to_list = function(p, list) {
+
+		if(p.get_dom().hasClass('animating')) {
+			setTimeout(function() {move_to_list(p, list)}, 30);
+			return;
+		}
+		else {
+			p.render();
+			animate_move(p.get_dom(), list);
+		}
+	}
+
+	var currently_running = 0;
+
 	var task_queue = {
 
 		cycle_length: undefined,
@@ -185,7 +233,48 @@ var task_queue = (function(){
 		start: function() {
 			var that = this;
 			var timeouted = function() {
-				console.log(new Date().valueOf());
+				
+				while(lists.new.length > 0) {
+
+					var process = lists.new.shift();
+					
+					process.set_status(Process.STATUS_READY);
+					move_to_list(process, $('#ready'));
+					//animate_move(process.get_dom(), $('#ready'));
+
+					lists.ready.push(process);
+				}
+
+				while(lists.ready.length > 0 && currently_running < that.paralel_processes) {
+					var process = lists.ready.shift();
+					lists.running.push(process);
+					currently_running++;
+					move_to_list(process, $('#running'));
+					//animate_move(process.get_dom(), $('#running'));					
+				}
+
+				var processed = [];
+				
+				while(lists.running.length > 0) {
+
+					var process = lists.running.shift();
+					var r = process.run();
+					process.render();
+
+					if(!r) {
+						lists.terminated.push(process);
+						move_to_list(process, $('#terminated'));
+						//animate_move(process.get_dom(), $('#terminated'));
+					}
+					else {
+						processed.push(process);
+					}
+				}
+
+				lists.running = processed;
+				
+				console.log(new Date().valueOf() / 1000)
+
 				setTimeout(timeouted, that.cycle_length * 1000);
 			}
 
@@ -197,6 +286,7 @@ var task_queue = (function(){
 		add_process: function(process) {
 			process.set_pid(this.get_pid(), this);
 			processes.push(process);
+			lists.new.push(process);
 			process.render();
 		}
 
