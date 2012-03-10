@@ -11,7 +11,10 @@
 	</head>
 	<body>
 		<div class="container">
-			<a class="btn" id="new_process" href="#">New Process</a>
+			<div id="controls">
+				<a class="btn" id="new_process" href="#">New Process</a>
+				<a id="test_anim">TEST</a>
+			</div>
 			<div class="row processes">
 				<div id="new" class="span3 process-column" >
 					<h3>New</h3>
@@ -77,11 +80,11 @@
 		</div>
 
 		<div class="process template">
-			<p>PID: <span></span></p>
+			<p class="pid">PID: <span></span></p>
 			<p></p>
-			<p>Cycles: <span>0/20</span></p>
+			<p class="cycles">Cycles: <span>0/20</span></p>
 			<p class="io">IO: <span>b</span></p>
-			<button class="btn btn-danger" href="#">Terminate</button>
+			<button class="btn btn-danger terminate" href="#">Terminate</button>
 		</div>
 
 		<div class="modal custom_modal" id="settings_modal">
@@ -94,14 +97,14 @@
 		            <label class="control-label">Paralel processes</label>
 		            <div class="controls">
 		              <input type="text" class="span2" name="paralel_processes" placeholder="Int"/>
-		              <span class="help-block" style="display:none">Incorect paralel process count</span>
+		              <span class="help-block">Incorect paralel process count</span>
 		            </div>
 		        </div>
 		        <div class="control-group">
 		            <label class="control-label">Cycle length</label>
 		            <div class="controls">
 		              <input type="text" class="span2" name="cycle_length" placeholder="Seconds"/>
-		              <span class="help-block" style="display:none">Incorect cycle length</span>
+		              <span class="help-block">Incorect cycle length</span>
 		            </div>
 		        </div>
 			</form>
@@ -123,7 +126,7 @@
 					<label class="control-label">IO Wait</label>
 					<label class="radio">
 						<input type="radio" value="1" name="io_wait" checked/>
-						Will eventualy wait for user input
+						Might randomly wait for user input
 					</label>
 					<label class="radio">
 						<input type="radio" value="0" name="io_wait"/>

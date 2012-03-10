@@ -56,3 +56,11 @@ body {
 	width: 200px;
 	margin-left: -100px;	
 }
+
+.custom_modal .help-block {
+	display: none;
+}
+
+.process {
+	margin-bottom: 3px;
+}
