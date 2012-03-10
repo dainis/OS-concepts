@@ -76,12 +76,6 @@ $(document).ready(function(){
 		return false;
 	});
 
-	$('#test_anim').on('click', function() {
-		var el = $('#new .process');
-		animate_move(el, $('#running'));
-		return false;
-	});
-
 	$('#running').on('click', '.terminate', function() {
 		task_queue.terminate($(this).closest('.process').data('pid'));
 
