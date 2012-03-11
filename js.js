@@ -14,6 +14,8 @@ $(document).ready(function(){
 
 		var cycle_length = parseInt($('input[name="cycle_length"]', settings_modal).val());
 
+		var max_execution_cycles = parseInt($('input[name="max_execution_cycles"]', settings_modal).val());
+
 		if(!cycle_length || cycle_length < 1) {
 			errors = true;
 			$('input[name="cycle_length"]', settings_modal).closest('.control-group').addClass('error').find('.help-block').show();
@@ -26,12 +28,17 @@ $(document).ready(function(){
 			$('input[name="paralel_processes"]', settings_modal).closest('.control-group').addClass('error').find('.help-block').show();
 		}
 
+		if(!max_execution_cycles || max_execution_cycles < 1) {
+			errors = true;
+			$('input[name="max_execution_cycles"]', settings_modal).closest('.control-group').addClass('error').find('.help-block').show();
+		}		
+
 		if(!errors) {
 
 			task_queue.cycle_length = cycle_length;
 			task_queue.paralel_processes = paralel_processes;
 			task_queue.start();
-
+			task_queue.max_execution_cycles = max_execution_cycles;
 			$(settings_modal).modal('hide');	
 			modal_open = false;
 		}
@@ -61,12 +68,13 @@ $(document).ready(function(){
 
 		var process_cycles = parseInt($('input[name="cycles"]', new_process_modal).val());
 
-		if(!process_cycles || process_cycles < 0) {
+		if(isNaN(process_cycles) || process_cycles < 0) {
 			$('input[name="cycles"]', new_process_modal).closest('.control-group').addClass('error').find('.help-block').show();
 		}
 		else {
 			$(new_process_modal).modal('hide');
 			var io_wait = parseInt($('input[name="io_wait"]:checked', new_process_modal).val());
+			process_cycles = process_cycles || Infinity;
 			var process = new Process(process_cycles, io_wait);
 			task_queue.add_process(process);
 			modal_open = false;
@@ -148,9 +156,8 @@ var Process = function(cycles, interupt) {
 	var status = Process.STATUS_NEW;
 	var old_status = null;
 	var dom = undefined;
-
-	var task_queue = undefined;
-
+	var cycles_executed = 0;
+	var cycles_executed_in_loop = 0;
 	var io = null;
 
 	this.set_pid = function(pid_in) {
@@ -168,14 +175,21 @@ var Process = function(cycles, interupt) {
 	//Renders process content, if new, then renders it in corresponding que
 	this.render = function() {
 		$('.io > span', dom).text(io)
-		$('.cycles > span', dom).text(cycles - cycles_left+'/'+cycles);
+
+		$('.cycles > span', dom).text(cycles_executed+'/'+cycles);
 	}
 
 	this.run = function() {
 
 		if(cycles_left < 1) {
 			status = Process.STATUS_TERMINATED;
-			return false;
+			return;
+		}
+		console.log(task_queue);
+		if(cycles_executed_in_loop == task_queue.max_execution_cycles) {
+			cycles_executed_in_loop = 0;
+			status = Process.STATUS_READY;
+			return;
 		}
 
 		if(status == Process.STATUS_READY) {
@@ -184,7 +198,8 @@ var Process = function(cycles, interupt) {
 		}
 
 		cycles_left -= 1;
-
+		cycles_executed += 1;
+		cycles_executed_in_loop += 1;
 		if(interupt && status == Process.STATUS_RUNNING) {
 			var io_wait = Math.random()*cycles;
 			if(io_wait < (cycles / 5)) {
@@ -250,7 +265,7 @@ var task_queue = (function(){
 
 		cycle_length: undefined,
 		paralel_processes: undefined,
-
+		max_execution_cycles: 10,
 		start: function() {
 			var that = this;
 			var timeouted = function() {
@@ -277,7 +292,7 @@ var task_queue = (function(){
 				var processed = [];
 				
 				while(lists.running.length > 0) {
-					
+
 					var process = lists.running.shift();
 					process.run();
 
@@ -289,6 +304,11 @@ var task_queue = (function(){
 					else if(process.get_status() == Process.STATUS_WAITING) {
 						lists.waiting.push(process);
 						move_to_list(process, $('#waiting'));
+						currently_running -= 1;
+					}
+					else if(process.get_status() == Process.STATUS_READY) {
+						lists.ready.push(process);
+						move_to_list(process, $('#ready'));
 						currently_running -= 1;
 					}
 					else {
@@ -366,4 +386,3 @@ var task_queue = (function(){
 
 	return task_queue;
 }());
-
