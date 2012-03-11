@@ -30,7 +30,6 @@ $(document).ready(function(){
 
 			task_queue.cycle_length = cycle_length;
 			task_queue.paralel_processes = paralel_processes;
-			console.log(task_queue.paralel_processes);
 			task_queue.start();
 
 			$(settings_modal).modal('hide');	
@@ -46,7 +45,7 @@ $(document).ready(function(){
 
 		modal_open = true;
 
-		$('input', new_process_modal).val('');
+		$('input:not([type="radio"])', new_process_modal).val('');
 		$('.error', new_process_modal).removeClass('error');
 		$('.error-block', new_process_modal).hide();
 
@@ -67,7 +66,7 @@ $(document).ready(function(){
 		}
 		else {
 			$(new_process_modal).modal('hide');
-			var io_wait = parseInt($('input[name="io_wait"]', new_process_modal).val());
+			var io_wait = parseInt($('input[name="io_wait"]:checked', new_process_modal).val());
 			var process = new Process(process_cycles, io_wait);
 			task_queue.add_process(process);
 			modal_open = false;
@@ -157,7 +156,7 @@ var Process = function(cycles, interupt) {
 	this.set_pid = function(pid_in) {
 		pid = pid_in;
 		dom = $('.process.template').clone().removeClass('template');
-		dom.data('pid', pid_in);
+		dom.data('pid', pid);
 		$('#new .list').append(dom).fadeIn(1000);
 		$('.pid > span', dom).text(pid);
 	}
@@ -173,13 +172,28 @@ var Process = function(cycles, interupt) {
 	}
 
 	this.run = function() {
-		if(cycles_left > 0 && (status == Process.STATUS_READY || status == Process.STATUS_RUNNING)) {
-			cycles_left -= 1;
-			status = Process.STATUS_RUNNING;
-			return true;
+
+		if(cycles_left < 1) {
+			status = Process.STATUS_TERMINATED;
+			return false;
 		}
 
-		return false;
+		if(status == Process.STATUS_READY) {
+			status = Process.STATUS_RUNNING;
+			return;
+		}
+
+		cycles_left -= 1;
+
+		if(interupt && status == Process.STATUS_RUNNING) {
+			var io_wait = Math.random()*cycles;
+			if(io_wait < (cycles / 5)) {
+				status = Process.STATUS_WAITING;
+				io = String.fromCharCode(Math.floor(Math.random() * 26 + 97));
+			}
+
+			return;
+		}
 	}
 
 	this.get_dom = function() {
@@ -188,6 +202,14 @@ var Process = function(cycles, interupt) {
 
 	this.set_status = function(status_in) {
 		status = status_in;
+	}
+
+	this.get_status = function() {
+		return status;
+	}
+
+	this.waiting_for = function(code) {
+		return io == String.fromCharCode(code);
 	}
 }
 
@@ -255,17 +277,22 @@ var task_queue = (function(){
 				var processed = [];
 				
 				while(lists.running.length > 0) {
-
+					
 					var process = lists.running.shift();
-					var r = process.run();
-					process.render();
+					process.run();
 
-					if(!r) {
+					if(process.get_status() == Process.STATUS_TERMINATED) {
 						lists.terminated.push(process);
 						move_to_list(process, $('#terminated'));
 						currently_running -= 1;
 					}
+					else if(process.get_status() == Process.STATUS_WAITING) {
+						lists.waiting.push(process);
+						move_to_list(process, $('#waiting'));
+						currently_running -= 1;
+					}
 					else {
+						process.render();
 						processed.push(process);
 					}
 				}
@@ -307,6 +334,26 @@ var task_queue = (function(){
 			
 			move_to_list(process, $('#terminated'));
 			lists.terminated.push(process);
+		},
+
+		notify: function(char) {
+			var still_waiting = [];
+
+			while(lists.waiting.length > 0) {
+
+				var process = lists.waiting.shift();
+
+				if(process.waiting_for(char)) {
+					process.set_status(Process.STATUS_READY);
+					lists.ready.push(process);
+					move_to_list(process, $('#ready'));
+				}
+				else {
+					still_waiting.push(process);
+				}
+			}
+
+			lists.waiting = still_waiting;
 		}
 	}
 
