@@ -105,19 +105,30 @@ var animate_move = function(el, to_container) {
 
 	el = $(el);
 
+	var new_el = el.clone();
+
 	el.addClass('animating');
 
+	var not_visible = el.closest('.list').find('.process:not(:visible)').show();
+
 	var initial_offset = el.offset();
+
+	not_visible.hide();
+
 	var animated_el = el.clone();
 	var dimensions = {
 		width: el.width()
 	};
 
-	to_container.append(el);
+	to_container.append(new_el);
 
-	var target_coords = el.offset();
+	var not_visible = $('.process:not(:visible)', to_container).show();
+
+	var target_coords = new_el.offset();
 
 	el.hide();
+	new_el.hide();
+	not_visible.hide();
 
 	animated_el.css({
 		position: 'absolute', 
@@ -134,12 +145,13 @@ var animate_move = function(el, to_container) {
 			top: target_coords.top
 		}, 
 		{
-			duration: 1000,
+			duration: Math.min(task_queue.cycle_length * 1000 / 2, 1000),
 			specialEasing: {
       			width: 'linear',
       			height: 'easeOutBounce'
     		},
     		complete: function() {
+    			new_el.replaceWith(el);
     			el.show();
     			el.removeClass('animating');
       			$(this).remove();
@@ -200,9 +212,11 @@ var Process = function(cycles, interupt) {
 		cycles_left -= 1;
 		cycles_executed += 1;
 		cycles_executed_in_loop += 1;
+
 		if(interupt && status == Process.STATUS_RUNNING) {
 			var io_wait = Math.random()*cycles;
 			if(io_wait < (cycles / 5)) {
+				cycles_executed_in_loop = 0;
 				status = Process.STATUS_WAITING;
 				io = String.fromCharCode(Math.floor(Math.random() * 26 + 97));
 			}
