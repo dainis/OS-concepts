@@ -101,7 +101,7 @@ $(document).ready(function(){
 	})
 });
 
-var animate_move = function(el, to_container) {
+var animate_move = function(el, to_container, prepend) {
 
 	el = $(el);
 
@@ -116,15 +116,27 @@ var animate_move = function(el, to_container) {
 	not_visible.hide();
 
 	var animated_el = el.clone();
+
 	var dimensions = {
-		width: el.width()
+		width: el.width(),
+		height: el.height()
 	};
 
-	to_container.append(new_el);
+	var stub = $('<div></div>');
+
+	stub.css('height', dimensions.height);
+
+	if(prepend) {
+		$('h3', to_container).after(stub);
+	}
+	else {
+		stub = new_el;
+		to_container.append(new_el);	
+	}
 
 	var not_visible = $('.process:not(:visible)', to_container).show();
 
-	var target_coords = new_el.offset();
+	var target_coords = stub.offset();
 
 	el.hide();
 	new_el.hide();
@@ -151,7 +163,8 @@ var animate_move = function(el, to_container) {
       			height: 'easeOutBounce'
     		},
     		complete: function() {
-    			new_el.replaceWith(el);
+    			stub.replaceWith(el);
+    			stub.remove();
     			el.show();
     			el.removeClass('animating');
       			$(this).remove();
@@ -215,7 +228,7 @@ var Process = function(cycles, interupt) {
 
 		if(interupt && status == Process.STATUS_RUNNING) {
 			var io_wait = Math.random()*cycles;
-			if(io_wait < (cycles / 5)) {
+			if(io_wait < (cycles / 10)) {
 				cycles_executed_in_loop = 0;
 				status = Process.STATUS_WAITING;
 				io = String.fromCharCode(Math.floor(Math.random() * 26 + 97));
@@ -262,14 +275,14 @@ var task_queue = (function(){
 		terminated: []
 	};
 
-	var move_to_list = function(p, list) {
+	var move_to_list = function(p, list, prepend) {
 
 		if(p.get_dom().hasClass('animating')) {
 			setTimeout(function() {move_to_list(p, list)}, 30);
 		}
 		else {
 			p.render();
-			animate_move(p.get_dom(), list);
+			animate_move(p.get_dom(), list, prepend);
 		}
 	}
 
@@ -312,7 +325,7 @@ var task_queue = (function(){
 
 					if(process.get_status() == Process.STATUS_TERMINATED) {
 						lists.terminated.push(process);
-						move_to_list(process, $('#terminated'));
+						move_to_list(process, $('#terminated'), true);
 						currently_running -= 1;
 					}
 					else if(process.get_status() == Process.STATUS_WAITING) {
@@ -366,7 +379,7 @@ var task_queue = (function(){
 
 			process.set_status(Process.STATUS_TERMINATED);
 			
-			move_to_list(process, $('#terminated'));
+			move_to_list(process, $('#terminated'), true);
 			lists.terminated.push(process);
 		},
 
